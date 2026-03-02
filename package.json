@@ -5,11 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "npx serve@latest out",
     "lint": "eslint",
-    "build:prod": "cross-env GITHUB_PAGES=true npm run build && node scripts/postbuild.js",
-    "build:test": "cross-env LOCAL_TEST=true npm run build && node scripts/postbuild.js",
-    "serve:test": "node scripts/serve-test.js",
     "deploy": "npm run build:prod"
   },
   "dependencies": {
