@@ -10,7 +10,7 @@ const isLocalTest = process.env.LOCAL_TEST === 'true';
 console.log('🔧 Post-build iniciado...');
 console.log(`📌 Entorno: ${isGitHubPages ? 'GitHub Pages' : isLocalTest ? 'Local Test' : 'Desarrollo local'}`);
 
-function fixPathsForGitHubPages(dir) {
+function fixHtmlPaths(dir, basePath = '') {
   const files = fs.readdirSync(dir);
   
   files.forEach(file => {
@@ -18,14 +18,32 @@ function fixPathsForGitHubPages(dir) {
     const stat = fs.statSync(filePath);
     
     if (stat.isDirectory()) {
-      fixPathsForGitHubPages(filePath);
+      fixHtmlPaths(filePath, basePath);
     } else if (file.endsWith('.html')) {
       let content = fs.readFileSync(filePath, 'utf8');
       
-      content = content.replace(
-        /(src|href)="\//g,
-        `$1="/${repoName}/`
-      );
+      // Corregir rutas en HTML
+      if (isGitHubPages) {
+        // Para GitHub Pages, rutas absolutas con /repo/
+        content = content.replace(
+          /(src|href)="\/(_next|assets)/g,
+          `$1="/${repoName}/$2`
+        );
+        content = content.replace(
+          /(src|href)="\/(?!\/)/g,
+          `$1="/${repoName}/`
+        );
+      } else if (isLocalTest) {
+        // Para prueba local, rutas relativas
+        content = content.replace(
+          /(src|href)="\/(_next|assets)/g,
+          `$1="./$2`
+        );
+        content = content.replace(
+          /(src|href)="\/(?!\/)/g,
+          '$1="./'
+        );
+      }
       
       fs.writeFileSync(filePath, content);
       console.log(`✓ HTML corregido: ${path.relative(outDir, filePath)}`);
@@ -46,29 +64,39 @@ function reorganizeForLocalTest() {
   
   execSync(`cp -r ${outDir}/* ${targetDir}/`);
   
-  // Crear instrucciones claras para servir
+  // Crear archivo de redirección para prueba local
+  const redirectHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="refresh" content="0; url=/${repoName}/">
+</head>
+<body>
+  <p>Redirigiendo a <a href="/${repoName}/">/${repoName}/</a>...</p>
+</body>
+</html>`;
+  
+  fs.writeFileSync(path.join(testDir, 'index.html'), redirectHtml);
+  
   console.log('\n' + '='.repeat(50));
   console.log('✅ PRUEBA LOCAL PREPARADA');
   console.log('='.repeat(50));
   console.log('\n📋 Para servir la aplicación:');
-  console.log('\n   Opción 1 (Recomendada - con serve):');
-  console.log(`   cd test-deploy/${repoName} && npx serve@latest -l 3000`);
-  console.log('\n   Opción 2 (Con un servidor HTTP simple):');
-  console.log(`   cd test-deploy/${repoName} && npx http-server -p 3000`);
+  console.log(`   cd test-deploy && npx serve@latest -l 3000`);
   console.log('\n🌐 Luego abre en tu navegador:');
-  console.log(`   http://localhost:3000\n`);
+  console.log(`   http://localhost:3000/${repoName}\n`);
 }
 
 // Ejecutar según el entorno
 if (isGitHubPages) {
   console.log('🚀 Preparando para GitHub Pages...');
-  fixPathsForGitHubPages(outDir);
+  fixHtmlPaths(outDir, repoName);
   console.log('✅ Archivos listos para GitHub Pages');
 } else if (isLocalTest) {
   console.log('🧪 Preparando para prueba local...');
   reorganizeForLocalTest();
 } else {
   console.log('💻 Modo desarrollo local - sin modificaciones');
+  fixHtmlPaths(outDir);
 }
 
 console.log('🎉 Post-build completado!');
