@@ -1,0 +1,5 @@
+Write-Host "🧪 Preparando prueba local..." -ForegroundColor Cyan
+npm run build:test
+Set-Location test-deploy
+npm install
+npm start
