@@ -11,17 +11,13 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
-  // basePath solo para GitHub Pages
-  basePath: isProd && isGitHubPages ? `/${repoName}` : '',
-  assetPrefix: isProd && isGitHubPages ? `/${repoName}/` : '',
-  
-  trailingSlash: true,
-  
-  // Importante para rutas relativas
-  experimental: {
-    // Esto ayuda con las rutas de los assets
-    optimizeCss: false,
-  },
+  basePath: '/travel-album-frontend',
+  assetPrefix: '/travel-album-frontend/',
+  // Importante: para desarrollo local
+  ...(process.env.NODE_ENV === 'development' && {
+    basePath: '',
+    assetPrefix: '',
+  }),
 };
 
 export default nextConfig;
