@@ -11,13 +11,13 @@ permissions:
   pages: write
   id-token: write
 
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -39,11 +39,32 @@ jobs:
           NODE_ENV: production
           GITHUB_PAGES: true
           GITHUB_REPOSITORY: ${{ github.repository }}
-        
+      
+      - name: Create artifact structure
+        run: |
+          # Crear la estructura correcta para GitHub Pages
+          mkdir -p public-artifact/travel-album-frontend
+          cp -r out/* public-artifact/travel-album-frontend/
+          
+          # Crear archivo de redirección en la raíz
+          echo '<!DOCTYPE html>
+          <html>
+          <head>
+            <meta http-equiv="refresh" content="0; url=/travel-album-frontend/">
+          </head>
+          <body>
+            <p>Redirigiendo a <a href="/travel-album-frontend/">/travel-album-frontend/</a>...</p>
+          </body>
+          </html>' > public-artifact/index.html
+          
+          # Crear .nojekyll en ambas carpetas
+          touch public-artifact/.nojekyll
+          touch public-artifact/travel-album-frontend/.nojekyll
+          
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './out'
+          path: './public-artifact'
           
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
