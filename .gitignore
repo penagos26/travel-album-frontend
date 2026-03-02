@@ -36,3 +36,11 @@ yarn-error.log*
 next-env.d.ts
 /.vs
 /public
+
+# Pruebas locales
+test-deploy/
+out/
+
+# Variables de entorno
+.env*.local
+.env.local
