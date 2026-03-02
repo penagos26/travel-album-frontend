@@ -1,0 +1,58 @@
+name: Deploy to GitHub Pages
+
+on:
+  # Disparador cuando se crea una nueva tag
+  push:
+    tags:
+      - 'v*'           # Coincide con tags como v1.0.0, v2.1.3, etc.
+      - 'release-*'     # O tags como release-1.0
+  # También permitir despliegue manual desde Actions
+  workflow_dispatch:
+
+# Permisos necesarios para GitHub Pages
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+# Permitir solo un despliegue concurrente
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    steps:
+      - name: Checkout código 🛎️
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }} # Asegura que usa exactamente la tag
+
+      - name: Setup Node.js ⚙️
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar dependencias 📦
+        run: npm ci
+
+      - name: Construir proyecto 🔧
+        run: npm run build
+        
+      - name: Crear archivo .nojekyll 🚫
+        run: touch ./out/.nojekyll
+
+      - name: Subir artifact 📤
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './out'  # Next.js con output: 'export' genera ./out
+
+      - name: Desplegar a GitHub Pages 🚀
+        id: deployment
+        uses: actions/deploy-pages@v4
