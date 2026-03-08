@@ -63,13 +63,11 @@ export default function PlacesListPage() {
                   new Date(b.visitDate).getTime(),
               )
               .map((place) => (
-                <Grid item xs={12} sm={6} md={4} key={place.id}>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }} key={place.id}>
                   <Card
                     sx={{
                       borderRadius: 4,
                       height: "100%",
-                      width: 300,
-                      flex: 1,
                       display: "flex",
                       flexDirection: "column",
                       transition: "transform 0.2s",
