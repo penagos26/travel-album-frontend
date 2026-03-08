@@ -1,4 +1,5 @@
 "use client";
+import React from "react";
 
 import {
   Container,
@@ -16,9 +17,11 @@ import { usePlaces } from "../../application/hooks/usePlaces";
 import { Header } from "../../components/layout/Header";
 import MapIcon from "@mui/icons-material/Map";
 import Link from "next/link";
+import { PlaceSidebar } from "../../components/sidebar/PlaceSidebar";
 
 export default function PlacesListPage() {
   const { places } = usePlaces();
+  const [selectedPlace, setSelectedPlace] = React.useState<any | null>(null);
 
   return (
     <Box sx={{ bgcolor: "#f5f5f5", minHeight: "100vh" }}>
@@ -54,62 +57,74 @@ export default function PlacesListPage() {
         ) : (
           <Grid container spacing={3}>
             {places
-            .sort((a, b) => new Date(a.visitDate).getTime() - new Date(b.visitDate).getTime())
-            .map((place) => (
-              <Grid item xs={12} sm={6} md={4} key={place.id}>
-                <Card
-                  sx={{
-                    borderRadius: 4,
-                    height: "100%",
-                    width: 300,
-                    flex: 1,
-                    display: "flex",
-                    flexDirection: "column",
-                    transition: "transform 0.2s",
-                    "&:hover": { transform: "scale(1.05)" },
-                  }}
-                >
-                  <CardMedia
-                    component="img"
+              .sort(
+                (a, b) =>
+                  new Date(a.visitDate).getTime() -
+                  new Date(b.visitDate).getTime(),
+              )
+              .map((place) => (
+                <Grid item xs={12} sm={6} md={4} key={place.id}>
+                  <Card
                     sx={{
-                      height: 200,
-                      objectFit: "cover",
-                      borderRadius: '16px 16px 0 0',
+                      borderRadius: 4,
+                      height: "100%",
+                      width: 300,
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      transition: "transform 0.2s",
+                      cursor: "pointer",
+                      "&:hover": { transform: "scale(1.05)" },
                     }}
-                    image={place.photoUrl}
-                    alt={place.cityName}
-                  />
-                  <CardContent sx={{ flexGrow: 1 }}>
-                    <Typography variant="h6" gutterBottom>
-                      {place.cityName}
-                    </Typography>
-                    <Box
+                    onClick={() => setSelectedPlace(place)}
+                  >
+                    <CardMedia
+                      component="img"
                       sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        mb: 1,
+                        height: 200,
+                        objectFit: "cover",
+                        borderRadius: "16px 16px 0 0",
                       }}
-                    >
-                      <Typography variant="body2" color="textSecondary">
-                        {place.visitDate}
+                      image={place.photoUrl}
+                      alt={place.cityName}
+                    />
+                    <CardContent sx={{ flexGrow: 1 }}>
+                      <Typography variant="h6" gutterBottom>
+                        {place.cityName}
                       </Typography>
-                      <Rating value={place.rating} readOnly size="small" />
-                    </Box>
-                    {place.musicUrl && (
-                      <Chip
-                        label="Tiene música"
-                        size="small"
-                        color="primary"
-                        variant="outlined"
-                        sx={{ mt: 1 }}
-                      />
-                    )}
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          mb: 1,
+                        }}
+                      >
+                        <Typography variant="body2" color="textSecondary">
+                          {place.visitDate}
+                        </Typography>
+                        <Rating value={place.rating} readOnly size="small" />
+                      </Box>
+                      {place.musicUrl && (
+                        <Chip
+                          label="Tiene música"
+                          size="small"
+                          color="primary"
+                          variant="outlined"
+                          sx={{ mt: 1 }}
+                        />
+                      )}
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
           </Grid>
         )}
+        <PlaceSidebar
+          open={!!selectedPlace}
+          place={selectedPlace}
+          onClose={() => setSelectedPlace(null)}
+          style={{ marginTop: "64px" }}
+        />
       </Container>
     </Box>
   );
